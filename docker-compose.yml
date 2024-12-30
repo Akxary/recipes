@@ -1,0 +1,43 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    env_file:
+      - ./.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=recipes.settings
+    # command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8123:8000"
+    depends_on:
+      - pg_db
+  
+  pg_db:
+    image: postgres:16
+    container_name: pg_db
+    hostname: pg_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASS}
+      POSTGRES_DB: ${PG_DB}
+    expose:
+      - 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  
+  redis:
+    image: redis:latest
+    container_name: redis
+    expose:
+      - 6379
+    # ports:
+    #   - "7480:6379"
+    restart: always
+
+
+volumes:
+  postgres_data:
