@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "name": "Яичница",
+    "ingredients": [
+      {
+        "name": "Яйца",
+        "quantity": 3,
+        "unit": "шт."
+      }
+    ],
+    "stages": [{ "description": "Пожарить яйца" }],
+    "author": { "id": 1, "name": "Bob" },
+    "likesCount": 0,
+    "commentsCount": 2
+  }
+]
