@@ -3,6 +3,8 @@ Cooking recipes share
 
 ## Backend
 - Django Rest Framework (DRF)
+run tests:
+$env:DJANGO_ENV="TEST"; python manage.py test
 
 ## Frontend
 - React
