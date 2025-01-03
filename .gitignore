@@ -1,13 +1,18 @@
+backend/.drf_env
+__pycache__
+backend/recipes/db.sqlite3
+.env
+
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
-node_modules/
+frontend/node_modules/
 
 # Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+frontend/.expo/
+frontend/dist/
+frontend/web-build/
+frontend/expo-env.d.ts
 
 # Native
 *.orig.*
