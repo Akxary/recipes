@@ -30,7 +30,7 @@ const RecipeList = ({ navigation }: RecipeListProps) => {
             <Text style={styles.name}>{item.name.slice(0, 10)}</Text>
             <Text style={styles.author}>{item.author.name.slice(0, 10)}</Text>
             <Text style={styles.meta}>
-            ❤️ {item.likesCount}    🗨 {item.commentsCount}
+            ❤️ {item.likesCount}    🗨 {item.comments.length}
             </Text>
         </TouchableOpacity>
     );

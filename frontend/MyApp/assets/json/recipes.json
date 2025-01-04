@@ -4,14 +4,24 @@
     "name": "Яичница",
     "ingredients": [
       {
+        "id": 1,
         "name": "Яйца",
         "quantity": 3,
         "unit": "шт."
       }
     ],
-    "stages": [{ "description": "Пожарить яйца" }],
+    "stages": [{"id": 1, "order": 1, "description": "Пожарить яйца" }],
     "author": { "id": 1, "name": "Bob" },
     "likesCount": 0,
-    "commentsCount": 2
+    "comments": [
+      {
+        "id": 1,
+        "content": "Круто",
+        "author": {
+          "id": 2,
+          "name": "Alice"
+        }
+      }
+    ]
   }
 ]
