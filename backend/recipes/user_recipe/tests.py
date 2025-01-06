@@ -1,20 +1,27 @@
-import enum
 import logging
-from rest_framework.test import APITestCase, APIClient
+from typing import TypeVar
+from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.response import Response
 
 from user_recipe.models import Authors, Ingredients, Recipes, Stages
-from django.db.models import Model
 
 logger = logging.getLogger(__name__)
 
+BASE_MODEL = TypeVar(
+    "BASE_MODEL",
+    type[Authors],
+    type[Recipes],
+    type[Ingredients],
+    type[Stages],
+)
 
-class CheckResponse:
+
+class CheckResponse(APITestCase):
     def check_single_response(
         self,
         response: Response,
-        expected_status: str,
+        expected_status: int,
         expected_data: dict,
     ) -> None:
         try:
@@ -30,7 +37,7 @@ class CheckResponse:
         self,
         response: Response,
         expected_len: int,
-        expected_status: str = status.HTTP_200_OK,
+        expected_status: int = status.HTTP_200_OK,
     ) -> None:
         try:
             self.assertEquals(response.status_code, expected_status)
@@ -42,8 +49,8 @@ class CheckResponse:
     def check_delete_response(
         self,
         response: Response,
-        model: Model,
-        expected_status: str = status.HTTP_204_NO_CONTENT,
+        model: BASE_MODEL,
+        expected_status: int = status.HTTP_204_NO_CONTENT,
         expected_len: int = 0,
     ) -> None:
         try:
@@ -111,7 +118,7 @@ class MockStages(MockRecipe):
         return Stages.objects.create(**data)
 
 
-class AuthorAPITestCase(APITestCase, MockAuthor):
+class AuthorAPITestCase(MockAuthor):
     base_url = "/api/authors/"
 
     def test_create_author(self) -> None:
@@ -143,7 +150,7 @@ class AuthorAPITestCase(APITestCase, MockAuthor):
         self.check_delete_response(response, Authors)
 
 
-class RecipeAPITest(APITestCase, MockRecipe):
+class RecipeAPITest(MockRecipe):
     base_url = "/api/recipes/"
 
     def test_create_recipe(self) -> None:
@@ -179,7 +186,7 @@ class RecipeAPITest(APITestCase, MockRecipe):
         self.check_delete_response(response, Recipes)
 
 
-class IngredientAPITest(APITestCase, MockIngredients):
+class IngredientAPITest(MockIngredients):
     base_url = "/api/ingredients/"
 
     def test_create_ingredient(self) -> None:
@@ -219,7 +226,7 @@ class IngredientAPITest(APITestCase, MockIngredients):
         self.check_delete_response(response, Ingredients)
 
 
-class StageAPITest(APITestCase, MockStages):
+class StageAPITest(MockStages):
     base_url = "/api/stages/"
 
     def test_create_stage(self) -> None:
@@ -269,9 +276,10 @@ class StageAPITest(APITestCase, MockStages):
         stage_result = response.data["results"][1:]
         for idx, stage in enumerate(stage_list[1:]):
             try:
-                self.assertEqual(stage.order+1, stage_result[idx]["order"])
+                self.assertEqual(stage.order + 1, stage_result[idx]["order"])
             except AssertionError as e:
-                logger.error("[%s] Expected order: %s", idx, stage.order+1)
-                logger.error("[%s] Calculated order: %s", idx, stage_result[idx]["order"])
+                logger.error("[%s] Expected order: %s", idx, stage.order + 1)
+                logger.error(
+                    "[%s] Calculated order: %s", idx, stage_result[idx]["order"]
+                )
                 raise e
-        

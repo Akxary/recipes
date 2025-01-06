@@ -1,4 +1,5 @@
 [tool.mypy]
+mypy_path = ["backend/recipes"]
 plugins = ["mypy_django_plugin.main"]
 
 
@@ -21,6 +22,7 @@ psycopg2-binary = "2.9.10"
 djangorestframework = "3.15.2"
 drf-spectacular = "0.28.0"
 typing-extensions = "4.12.2"
+redis = "^5.2.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -30,6 +32,7 @@ pytest-django = "4.9.0"
 django-stubs = "5.1.1"
 django-stubs-ext = "5.1.1"
 djangorestframework-stubs = "3.15.2"
+types-redis = "^4.6.0.20241004"
 
 [build-system]
 requires = ["poetry-core"]

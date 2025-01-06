@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+from dataclasses import dataclass
 import os
 from pathlib import Path
 
@@ -102,6 +103,18 @@ else:
             "PORT": 5432,
         }
     }
+
+@dataclass(frozen=True)
+class RedisConfig:
+    HOST: str = os.getenv("REDIS_HOST", "localhost")
+    PORT: int = int(os.getenv("REDIS_PORT", "6379"))
+    DB: int = int(os.getenv("REDIS_DB", 0))
+    RECIPE_SET_NAME: str = "RECIPE_SET"
+    LIKE_SET_NAME: str = "LIKE_SET"
+    
+    @classmethod
+    def join(cls, prefix: str, id: int) -> str:
+        return f"{prefix}_{id}"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
