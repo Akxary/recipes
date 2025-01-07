@@ -12,7 +12,7 @@ class ExternalRecipeSerializer(serializers.ModelSerializer):
 class ShortAuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Authors
-        fields = ["id", "author_name"]
+        fields = ["id", "email", "author_name"]
 
 
 class AbstactFields:
@@ -39,7 +39,7 @@ class AbstractAuthorSerializer(serializers.ModelSerializer):
     def to_representation(self, instance: AbsFields) -> dict:
         representation = super().to_representation(instance)
         author_instance = instance.author
-        representation["author"] = ShortAuthorSerializer(author_instance).data
+        representation["author"] = ShortAuthorSerializer(author_instance).data["author_name"]
         return representation
 
 
@@ -55,7 +55,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Authors
-        fields = ["id", "author_name", "recipes", "comments", "created_at"]
+        fields = ["id", "email", "author_name", "recipes", "comments", "created_at"]
 
 
 class IngredientSerializer(AbstractRecipeSerializer):

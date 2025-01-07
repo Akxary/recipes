@@ -3,8 +3,30 @@ Cooking recipes share
 
 ## Backend
 - Django Rest Framework (DRF)
+
 run tests:
+```bash
 $env:DJANGO_ENV="TEST"; python manage.py test
+```
+
+### SECRETS TO KEEP in .env:
+#### POSTGRES
+- PG_USER
+- PG_PASS
+- PG_DB
+- PG_HOST
+- PG_PORT
+#### REDIS
+- REDIS_HOST
+- REDIS_PORT
+- REDIS_DB
+#### JWT
+- JWT_SECRET
+#### SMTP
+- SMTP_HOST
+- SMTP_PORT
+- SMTP_USER
+- SMTP_PASS
 
 ## Frontend
 - React

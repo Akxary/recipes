@@ -19,8 +19,9 @@ class UpdatedAtMixin(models.Model):
 
 
 class Authors(CreatedAtMixin):
-    email: models.EmailField = models.EmailField(unique=True, null=False, blank=False)
-    author_name: models.CharField = models.CharField(max_length=256, db_default="split(email, '@')[0]")
+    # email: models.EmailField = models.EmailField(unique=True, null=False, blank=False)
+    email: models.EmailField = models.EmailField(db_index=True, unique=True, null=False, blank=False)
+    author_name: models.CharField = models.CharField(max_length=256)
 
 
 class Recipes(CreatedAtMixin, UpdatedAtMixin):

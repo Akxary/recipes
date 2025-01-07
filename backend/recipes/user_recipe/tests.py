@@ -3,7 +3,7 @@ from typing import TypeVar
 from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.response import Response
-
+from django.db.models import Model
 from user_recipe.models import Authors, Ingredients, Recipes, Stages
 
 logger = logging.getLogger(__name__)
@@ -14,6 +14,7 @@ BASE_MODEL = TypeVar(
     type[Recipes],
     type[Ingredients],
     type[Stages],
+    # bound=type[Model],
 )
 
 
@@ -62,8 +63,10 @@ class CheckResponse(APITestCase):
 
 
 class MockAuthor(CheckResponse):
-    def get_mock_author(self) -> Authors:
-        data = {"author_name": "Bob"}
+    def get_mock_author(self, sub_data: dict | None = None) -> Authors:
+        data = {"author_name": "Bob", "email": "Bob@example.com"}
+        if sub_data:
+            data.update(sub_data)
         return Authors.objects.create(**data)
 
 
@@ -123,16 +126,23 @@ class AuthorAPITestCase(MockAuthor):
 
     def test_create_author(self) -> None:
         """Тестируем создание автора"""
-        data = {"author_name": "Bob"}
+        data = {"author_name": "Bob", "email": "bob@example.com"}
         response = self.client.post(self.base_url, data)
         self.check_single_response(response, status.HTTP_201_CREATED, data)
 
     def test_list_authors(self) -> None:
         """Тестируем получения списка авторов"""
-        list_authors = [{"author_name": "Bob"}, {"author_name": "Alice"}]
-        Authors.objects.bulk_create([Authors(**item) for item in list_authors])
+        list_authors = [
+            self.get_mock_author(),
+            self.get_mock_author(
+                {
+                    "author_name": "Alice",
+                    "email": "Alice@example.com",
+                }
+            ),
+        ]
         response = self.client.get(self.base_url)
-        self.check_list_response(response, 2)
+        self.check_list_response(response, len(list_authors))
 
     def test_update_author(self) -> None:
         """Тестируем обновление автора"""
@@ -158,7 +168,7 @@ class RecipeAPITest(MockRecipe):
         author = self.get_mock_author()
         data = {"recipe_name": "Pie", "author": author.id}
         response = self.client.post(self.base_url, data)
-        data["author"] = {"id": author.id, "author_name": author.author_name}
+        data["author"] = author.author_name
         self.check_single_response(response, status.HTTP_201_CREATED, data)
 
     def test_update_recipe(self) -> None:

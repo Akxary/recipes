@@ -18,7 +18,7 @@ services:
   pg_db:
     image: postgres:16
     container_name: pg_db
-    hostname: pg_db
+    hostname: ${PG_HOST}
     restart: always
     environment:
       POSTGRES_USER: ${PG_USER}
@@ -32,10 +32,9 @@ services:
   redis:
     image: redis:latest
     container_name: redis
+    hostname: ${REDIS_HOST}
     expose:
       - 6379
-    # ports:
-    #   - "7480:6379"
     restart: always
 
 
