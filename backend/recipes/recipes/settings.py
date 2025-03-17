@@ -112,7 +112,7 @@ class RedisConfig:
     
     @classmethod
     def url(cls)->str:
-        return f"{cls.HOST}:{cls.PORT}/{cls.DB}"
+        return f"redis://{cls.HOST}:{cls.PORT}/{cls.DB}"
 
 @dataclass(frozen=True)
 class SmtpConfig:

@@ -13,4 +13,5 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/*
 COPY pyproject.toml pyproject.toml
 COPY recipes /app/recipes/
 WORKDIR /app/recipes
-CMD ["sh", "-c", "python manage.py migrate && gunicorn recipes.wsgi:application --bind 0.0.0.0:8000 --workers 1"]
+# COPY run_container.sh run_container.sh
+# CMD ["sh", "-c", "python manage.py migrate && gunicorn recipes.wsgi:application --bind 0.0.0.0:8000 --workers 1"]

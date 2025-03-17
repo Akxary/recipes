@@ -7,13 +7,29 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=recipes.settings
-    # command: python manage.py runserver 0.0.0.0:8000
+    command: ["sh", "run_container.sh", "django"]
     volumes:
       - ./backend:/app
     ports:
       - "8123:8000"
     depends_on:
       - pg_db
+      - redis
+    
+  celery:
+    build:
+      context: ./backend
+    container_name: celery
+    env_file:
+      - ./.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=recipes.settings
+    command: ["sh", "run_container.sh", "celery"]
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - pg_db
+      - redis
   
   pg_db:
     image: postgres:16

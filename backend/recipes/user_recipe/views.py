@@ -1,11 +1,14 @@
+from asyncio.base_subprocess import ReadSubprocessPipeProto
 from enum import Enum
 from functools import wraps
+from multiprocessing.reduction import send_handle
 from random import randint
 from typing import Callable, ParamSpec, TypeVar, cast
 import django.db.models as models
 from rest_framework.response import Response
 from rest_framework.request import Request
-from backend.recipes.user_recipe.redis_api import RedisClient
+from user_recipe.auth_api import send_verification_code
+from user_recipe.redis_api import RedisClient
 from user_recipe.exceptions import MissingTokenException
 from user_recipe.models import Authors, Comments, Ingredients, Recipes, Stages
 from rest_framework import viewsets, status
@@ -24,13 +27,14 @@ from user_recipe.serializers import (
     StageSerializer,
 )
 
+
 class HttpMethods(Enum):
     POST = "POST"
     PUT = "PUT"
     PATCH = "PATCH"
     GET = "GET"
     DELETE = "DELETE"
-    
+
     @classmethod
     def values(cls) -> set[str]:
         return {m.value for m in cls if m.value != "GET"}
@@ -39,31 +43,42 @@ class HttpMethods(Enum):
 P = ParamSpec("P")
 T = TypeVar("T")
 
-def set_author_by_token(func: Callable[P, T], validate_token:bool = True)->Callable[P, T]:
+
+def set_author_by_token(
+    func: Callable[P, T], validate_token: bool = True
+) -> Callable[P, T]:
     @wraps(func)
-    def wrapper(*args: P.args, **kwargs:P.kwargs)->T:
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         if "request" not in kwargs:
             raise MissingTokenException()
         request: Request = cast(Request, kwargs["request"])
         jwt_token = request.headers.get("JWT", "JWT")
         author_id = jwt.decode(jwt_token, "jwt_secret", algorithms="HS256")
         return func(*args, **kwargs)
-    
+
     return wrapper
 
 
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Authors.objects.all().order_by("email")
-    
+
     @action(detail=False, methods=["post"], url_path="send-code")
     def send_code(self, request: Request) -> Response:
-        author = Authors.objects.get_or_create({"email": request.data.get("email")})
-        
-        
-        
-        
-        
-    
+        author, created_flg = Authors.objects.get_or_create(
+            {"email": request.data.get("email")}
+        )
+        try:
+            send_verification_code(author)
+            return Response(
+                {"message": f"Verification code sent on {author.email}"},
+                status=status.HTTP_202_ACCEPTED,
+            )
+        except Exception as e:
+            return Response(
+                {"message": f"Error while sending email on {author.email}: {e}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     def get_serializer_class(self):
         if self.request.method == HttpMethods.POST.value:
             return ShortAuthorSerializer
@@ -73,12 +88,13 @@ class AuthorViewSet(viewsets.ModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipes.objects.all().order_by("id")
-    
+
     def get_serializer_class(self):
         if self.request.method == HttpMethods.POST.value:
             return CreateRecipeSerializer
         else:
             return RecipeSerializer
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comments.objects.all().order_by("id")
@@ -100,8 +116,16 @@ class StageViewSet(viewsets.ModelViewSet):
             "application/json": {
                 "type": "object",
                 "properties": {
-                    "recipe_id": {"type": "integer", "example": 1, "description": "ID рецепта"},
-                    "start_order": {"type": "integer", "example": 3, "description": "Начальный порядок"},
+                    "recipe_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "ID рецепта",
+                    },
+                    "start_order": {
+                        "type": "integer",
+                        "example": 3,
+                        "description": "Начальный порядок",
+                    },
                 },
                 "required": ["recipe_id", "start_order"],
             }
@@ -123,10 +147,11 @@ class StageViewSet(viewsets.ModelViewSet):
         if not recipe_id or start_order is None:
             return Response(
                 {"error": "recipe_id and start_order are required."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         stages = Stages.objects.filter(recipe_id=recipe_id, order__gte=start_order)
-        stages.update(order=models.F("order")+1)
-        return Response({"message": "Stages reordered successfully."}, status=status.HTTP_200_OK)
-    
+        stages.update(order=models.F("order") + 1)
+        return Response(
+            {"message": "Stages reordered successfully."}, status=status.HTTP_200_OK
+        )

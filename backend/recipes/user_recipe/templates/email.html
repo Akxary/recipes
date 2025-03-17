@@ -1,0 +1,34 @@
+{#
+Добрый день!
+
+Ваш код авторизации для приложения {{ app_name }}: {{ verification_code }}
+Код действует {{ lifetime }}
+
+Если вы не запрашивали этот код, проигнорируйте это письмо.
+
+
+С уважением,
+команда {{ app_name }}
+#}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .verification-code {
+            font-size: 24px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            color: #333333;
+        }
+    </style>
+</head>
+<body>
+    <p>Добрый день!</p>
+    <p>Ваш код авторизации для приложения {{ app_name }}:</p>
+    <p class="verification-code">{{ verification_code[:3] }}-{{ verification_code[3:] }}</p>
+    <p>Код действует {{ lifetime.seconds // 60 }} минут {{ lifetime.seconds % 60 }} секунд.</p>
+    <p>Если вы не запрашивали этот код, проигнорируйте это письмо.</p>
+    <p>С уважением,<br>команда {{ app_name }}</p>
+</body>
+</html>

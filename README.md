@@ -9,6 +9,11 @@ run tests:
 $env:DJANGO_ENV="TEST"; python manage.py test
 ```
 
+build python dependencies:
+```bash
+poetry export --without-hashes -f requirements.txt -o requirements.txt
+```
+
 ### SECRETS TO KEEP in .env:
 #### POSTGRES
 - PG_USER
