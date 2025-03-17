@@ -7,7 +7,7 @@ from typing import Callable, ParamSpec, TypeVar, cast
 import django.db.models as models
 from rest_framework.response import Response
 from rest_framework.request import Request
-from user_recipe.auth_api import send_verification_code
+from user_recipe.auth_api import send_verification_code, verify_code
 from user_recipe.redis_api import RedisClient
 from user_recipe.exceptions import MissingTokenException
 from user_recipe.models import Authors, Comments, Ingredients, Recipes, Stages
@@ -76,6 +76,25 @@ class AuthorViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(
                 {"message": f"Error while sending email on {author.email}: {e}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    
+    @action(detail=False, methods=["post"], url_path="verify-code")
+    def verify_code(self, request: Request) -> Response:
+        author, created_flg = Authors.objects.get_or_create(
+            {"email": request.data.get("email")}
+        )
+        try:
+            flg = verify_code(author, request.data.get("code", "-1"))
+            if flg:
+                return Response("Verification code accepted",status=status.HTTP_202_ACCEPTED,)
+            return Response(
+                {"message": "Verification code not accepted"},
+                status=status.HTTP_406_NOT_ACCEPTABLE,
+            )
+        except Exception as e:
+            return Response(
+                {"message": f"Error while verifing author {author.email}: {e}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

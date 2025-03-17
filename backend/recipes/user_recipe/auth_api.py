@@ -25,3 +25,12 @@ def send_verification_code(author: Authors) -> None:
     email_content['From'] = SmtpConfig.USER
     email_content['To'] = author.email
     send_tmp_code_email.apply_async(args=[email_content.as_bytes(), author.email])
+
+
+def verify_code(author: Authors, code: str) -> bool:
+    redis_client = RedisClient(author.id)
+    return redis_client.check_current_author_temporary_code(code)
+
+
+def set_token(author: Authors) -> tuple[str, str]:
+    return "", ""
