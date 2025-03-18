@@ -2,3 +2,4 @@ backend/.drf_env
 __pycache__
 backend/recipes/db.sqlite3
 .env
+backend/poetry.lock

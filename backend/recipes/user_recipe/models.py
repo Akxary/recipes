@@ -3,19 +3,8 @@ from django.db import models
 
 from django_enum import EnumField
 
-
-class CreatedAtMixin(models.Model):
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        abstract = True
-
-
-class UpdatedAtMixin(models.Model):
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        abstract = True
+from recipes.model_mixins import CreatedAtMixin
+from recipes.model_mixins import UpdatedAtMixin
 
 
 class Authors(CreatedAtMixin):

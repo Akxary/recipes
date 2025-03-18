@@ -1,10 +1,13 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import timedelta
+import logging
 import time
 from typing import Generator
 from redis import Redis
 from recipes.settings import RedisConfig
+
+logger = logging.getLogger(__name__)
 
 
 class RedisClient:
@@ -81,7 +84,7 @@ class RedisClient:
         with self.get_connection() as client:
             code = client.get(self._join(prefix, self.author_id))
             if code:
-                return str(code)
+                return code.decode("utf-8")
             return None
 
     def _set_current_author_token(self, prefix: str, token: str, token_lifetime: timedelta) -> None:
@@ -92,7 +95,9 @@ class RedisClient:
         self._set_current_author_token(self.Auth.TMP_CODE_NAME, code, self.Auth.TMP_CODE_TIME)
     
     def check_current_author_temporary_code(self, code: str) -> bool:
-        return self._get_current_code_by_name(self.Auth.TMP_CODE_NAME) == code
+        _author_code = self._get_current_code_by_name(self.Auth.TMP_CODE_NAME)
+        logger.info("Checking author temporary code. Redis code: %s, Passed code: %s", _author_code, code)
+        return _author_code == code
     
     def set_current_author_jwt(self, jwt: str) -> None:
         self._set_current_author_token(self.Auth.JWT_NAME, jwt, self.Auth.JWT_TIME)

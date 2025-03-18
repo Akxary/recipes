@@ -1,9 +1,9 @@
 from random import randint
 from email.mime.text import MIMEText
 from recipes.settings import BASE_DIR, SmtpConfig
-from user_recipe.celery_tasks.tasks import send_tmp_code_email
+from celery_tasks.tasks import send_tmp_code_email
 from user_recipe.models import Authors
-from user_recipe.redis_api import RedisClient
+from redis_api.redis_api import RedisClient
 
 from jinja2 import Environment, FileSystemLoader
 

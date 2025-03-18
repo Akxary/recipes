@@ -1,14 +1,11 @@
-from asyncio.base_subprocess import ReadSubprocessPipeProto
 from enum import Enum
 from functools import wraps
-from multiprocessing.reduction import send_handle
-from random import randint
+import logging
 from typing import Callable, ParamSpec, TypeVar, cast
 import django.db.models as models
 from rest_framework.response import Response
 from rest_framework.request import Request
-from user_recipe.auth_api import send_verification_code, verify_code
-from user_recipe.redis_api import RedisClient
+from authentication.auth_api import send_verification_code, verify_code
 from user_recipe.exceptions import MissingTokenException
 from user_recipe.models import Authors, Comments, Ingredients, Recipes, Stages
 from rest_framework import viewsets, status
@@ -42,7 +39,7 @@ class HttpMethods(Enum):
 
 P = ParamSpec("P")
 T = TypeVar("T")
-
+logger = logging.getLogger(__name__)
 
 def set_author_by_token(
     func: Callable[P, T], validate_token: bool = True
@@ -58,15 +55,19 @@ def set_author_by_token(
 
     return wrapper
 
+def get_author_by_email(request: Request)->Authors:
+    author, created_flg = Authors.objects.get_or_create(
+            {"email": request.data.get("email")}
+        )
+    logger.info("author with id %s was %s", author.id, "created" if created_flg else "got")
+    return author
 
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Authors.objects.all().order_by("email")
 
     @action(detail=False, methods=["post"], url_path="send-code")
     def send_code(self, request: Request) -> Response:
-        author, created_flg = Authors.objects.get_or_create(
-            {"email": request.data.get("email")}
-        )
+        author = get_author_by_email(request)
         try:
             send_verification_code(author)
             return Response(
@@ -81,9 +82,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=["post"], url_path="verify-code")
     def verify_code(self, request: Request) -> Response:
-        author, created_flg = Authors.objects.get_or_create(
-            {"email": request.data.get("email")}
-        )
+        author = get_author_by_email(request)
         try:
             flg = verify_code(author, request.data.get("code", "-1"))
             if flg:

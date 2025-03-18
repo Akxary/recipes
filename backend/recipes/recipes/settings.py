@@ -74,11 +74,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "recipes.wsgi.application"
 
-
+AUTH_USER_MODEL = ""
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "authentication.authentication.CustomJWTAuthentication"
+    ]
 }
 
 # Database
@@ -187,6 +190,16 @@ LOGGING = {
     },
     "loggers": {
         "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "recipes": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "user_recipe": {
             "handlers": ["console"],
             "level": "INFO",
             "propagate": True,
