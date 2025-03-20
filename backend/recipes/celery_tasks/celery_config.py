@@ -7,7 +7,7 @@ celery_app = Celery(
     "tasks",
     broker=RedisConfig.url(),
     include=[
-        "user_recipe.celery_tasks.tasks",
+        "celery_tasks.tasks",
         # "app.tasks.scheduled"
     ],
     broker_connection_retry_on_startup=True,

@@ -3,14 +3,9 @@ from django.db import models
 
 from django_enum import EnumField
 
+from authors.models import Authors
 from recipes.model_mixins import CreatedAtMixin
 from recipes.model_mixins import UpdatedAtMixin
-
-
-class Authors(CreatedAtMixin):
-    # email: models.EmailField = models.EmailField(unique=True, null=False, blank=False)
-    email: models.EmailField = models.EmailField(db_index=True, unique=True, null=False, blank=False)
-    author_name: models.CharField = models.CharField(max_length=256)
 
 
 class Recipes(CreatedAtMixin, UpdatedAtMixin):

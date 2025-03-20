@@ -24,7 +24,7 @@ class RedisClient:
         JWT_NAME: str = "JWT"
         JWT_TIME: timedelta = timedelta(days=7)
 
-    def __init__(self, author_id: int)->None:
+    def __init__(self, author_id: str)->None:
         self.author_id = author_id
     
     @staticmethod

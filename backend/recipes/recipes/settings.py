@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "user_recipe",
+    "authors",
 ]
 
 MIDDLEWARE = [
@@ -74,7 +75,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "recipes.wsgi.application"
 
-AUTH_USER_MODEL = ""
+# AUTH_USER_MODEL = "authors.Authors"
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
@@ -200,6 +201,11 @@ LOGGING = {
             "propagate": True,
         },
         "user_recipe": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "authors": {
             "handlers": ["console"],
             "level": "INFO",
             "propagate": True,

@@ -5,9 +5,9 @@ from typing import Callable, ParamSpec, TypeVar, cast
 import django.db.models as models
 from rest_framework.response import Response
 from rest_framework.request import Request
-from authentication.auth_api import send_verification_code, verify_code
+from authors.models import Authors
 from user_recipe.exceptions import MissingTokenException
-from user_recipe.models import Authors, Comments, Ingredients, Recipes, Stages
+from user_recipe.models import Comments, Ingredients, Recipes, Stages
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema
@@ -15,9 +15,7 @@ from drf_spectacular.types import OpenApiTypes
 import jwt
 
 from user_recipe.serializers import (
-    AuthorSerializer,
     CreateRecipeSerializer,
-    ShortAuthorSerializer,
     CommentsSerializer,
     IngredientSerializer,
     RecipeSerializer,
@@ -41,68 +39,19 @@ P = ParamSpec("P")
 T = TypeVar("T")
 logger = logging.getLogger(__name__)
 
-def set_author_by_token(
-    func: Callable[P, T], validate_token: bool = True
-) -> Callable[P, T]:
-    @wraps(func)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        if "request" not in kwargs:
-            raise MissingTokenException()
-        request: Request = cast(Request, kwargs["request"])
-        jwt_token = request.headers.get("JWT", "JWT")
-        author_id = jwt.decode(jwt_token, "jwt_secret", algorithms="HS256")
-        return func(*args, **kwargs)
+# def set_author_by_token(
+#     func: Callable[P, T], validate_token: bool = True
+# ) -> Callable[P, T]:
+#     @wraps(func)
+#     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+#         if "request" not in kwargs:
+#             raise MissingTokenException()
+#         request: Request = cast(Request, kwargs["request"])
+#         jwt_token = request.headers.get("JWT", "JWT")
+#         author_id = jwt.decode(jwt_token, "jwt_secret", algorithms="HS256")
+#         return func(*args, **kwargs)
 
-    return wrapper
-
-def get_author_by_email(request: Request)->Authors:
-    author, created_flg = Authors.objects.get_or_create(
-            {"email": request.data.get("email")}
-        )
-    logger.info("author with id %s was %s", author.id, "created" if created_flg else "got")
-    return author
-
-class AuthorViewSet(viewsets.ModelViewSet):
-    queryset = Authors.objects.all().order_by("email")
-
-    @action(detail=False, methods=["post"], url_path="send-code")
-    def send_code(self, request: Request) -> Response:
-        author = get_author_by_email(request)
-        try:
-            send_verification_code(author)
-            return Response(
-                {"message": f"Verification code sent on {author.email}"},
-                status=status.HTTP_202_ACCEPTED,
-            )
-        except Exception as e:
-            return Response(
-                {"message": f"Error while sending email on {author.email}: {e}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-    
-    @action(detail=False, methods=["post"], url_path="verify-code")
-    def verify_code(self, request: Request) -> Response:
-        author = get_author_by_email(request)
-        try:
-            flg = verify_code(author, request.data.get("code", "-1"))
-            if flg:
-                return Response("Verification code accepted",status=status.HTTP_202_ACCEPTED,)
-            return Response(
-                {"message": "Verification code not accepted"},
-                status=status.HTTP_406_NOT_ACCEPTABLE,
-            )
-        except Exception as e:
-            return Response(
-                {"message": f"Error while verifing author {author.email}: {e}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-    def get_serializer_class(self):
-        if self.request.method == HttpMethods.POST.value:
-            return ShortAuthorSerializer
-        else:
-            return AuthorSerializer
-
+#     return wrapper
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipes.objects.all().order_by("id")
@@ -128,7 +77,7 @@ class StageViewSet(viewsets.ModelViewSet):
     queryset = Stages.objects.all().order_by("order")
     serializer_class = StageSerializer
 
-    @set_author_by_token
+    # @set_author_by_token
     @extend_schema(
         request={
             "application/json": {

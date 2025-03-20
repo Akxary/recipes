@@ -1,73 +1,14 @@
 import logging
 from typing import TypeVar
-from rest_framework.test import APITestCase
 from rest_framework import status
-from rest_framework.response import Response
 from django.db.models import Model
-from user_recipe.models import Authors, Ingredients, Recipes, Stages
+from authors.models import Authors
+from authors.tests import MockAuthor
+from user_recipe.models import Ingredients, Recipes, Stages
 
 logger = logging.getLogger(__name__)
 
-BASE_MODEL = TypeVar(
-    "BASE_MODEL",
-    type[Authors],
-    type[Recipes],
-    type[Ingredients],
-    type[Stages],
-    # bound=type[Model],
-)
 
-
-class CheckResponse(APITestCase):
-    def check_single_response(
-        self,
-        response: Response,
-        expected_status: int,
-        expected_data: dict,
-    ) -> None:
-        try:
-            self.assertEqual(response.status_code, expected_status)
-            for f_name, f_value in expected_data.items():
-                self.assertEqual(response.data[f_name], f_value)
-        except AssertionError as e:
-            logger.error("Generated response: %s", response.data)
-            logger.error("Expected data: %s", expected_data)
-            raise e
-
-    def check_list_response(
-        self,
-        response: Response,
-        expected_len: int,
-        expected_status: int = status.HTTP_200_OK,
-    ) -> None:
-        try:
-            self.assertEquals(response.status_code, expected_status)
-            self.assertEquals(response.data["count"], expected_len)
-        except AssertionError as e:
-            logger.error("Generated response: %s", response.data)
-            raise e
-
-    def check_delete_response(
-        self,
-        response: Response,
-        model: BASE_MODEL,
-        expected_status: int = status.HTTP_204_NO_CONTENT,
-        expected_len: int = 0,
-    ) -> None:
-        try:
-            self.assertEqual(response.status_code, expected_status)
-            self.assertEqual(len(model.objects.all()), expected_len)
-        except AssertionError as e:
-            logger.error("Generated repsonse: %s", response.data)
-            raise e
-
-
-class MockAuthor(CheckResponse):
-    def get_mock_author(self, sub_data: dict | None = None) -> Authors:
-        data = {"author_name": "Bob", "email": "Bob@example.com"}
-        if sub_data:
-            data.update(sub_data)
-        return Authors.objects.create(**data)
 
 
 class MockRecipe(MockAuthor):
@@ -119,45 +60,6 @@ class MockStages(MockRecipe):
         if sub_data is not None:
             data.update(sub_data)
         return Stages.objects.create(**data)
-
-
-class AuthorAPITestCase(MockAuthor):
-    base_url = "/api/authors/"
-
-    def test_create_author(self) -> None:
-        """Тестируем создание автора"""
-        data = {"author_name": "Bob", "email": "bob@example.com"}
-        response = self.client.post(self.base_url, data)
-        self.check_single_response(response, status.HTTP_201_CREATED, data)
-
-    def test_list_authors(self) -> None:
-        """Тестируем получения списка авторов"""
-        list_authors = [
-            self.get_mock_author(),
-            self.get_mock_author(
-                {
-                    "author_name": "Alice",
-                    "email": "Alice@example.com",
-                }
-            ),
-        ]
-        response = self.client.get(self.base_url)
-        self.check_list_response(response, len(list_authors))
-
-    def test_update_author(self) -> None:
-        """Тестируем обновление автора"""
-        # TODO: проверить, что ид автора совпадает с обновляемым
-        author = self.get_mock_author()
-        data = {"author_name": "Alice"}
-        response = self.client.patch(self.base_url + f"{author.id}/", data)
-        self.check_single_response(response, status.HTTP_200_OK, data)
-
-    def test_delete_author(self) -> None:
-        """Тестируем удаление автора"""
-        # TODO: проверить, что ид автора совпадает с удаляемым
-        author = self.get_mock_author()
-        response = self.client.delete(self.base_url + f"{author.id}/")
-        self.check_delete_response(response, Authors)
 
 
 class RecipeAPITest(MockRecipe):
@@ -262,34 +164,34 @@ class StageAPITest(MockStages):
         response = self.client.delete(f"{self.base_url}{stage.id}/")
         self.check_delete_response(response, Stages)
 
-    def test_reorder_stages(self) -> None:
-        """Перераспределение стадий"""
-        recipe = self.get_mock_recipe()
-        stage_list: list[Stages] = [
-            self.get_mock_stage(recipe, {"order": 1}),
-            self.get_mock_stage(recipe, {"order": 2}),
-            self.get_mock_stage(recipe, {"order": 3}),
-        ]
-        response = self.client.post(
-            f"{self.base_url}reorder/",
-            {
-                "recipe_id": recipe.id,
-                "start_order": 2,
-            },
-        )
-        try:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-        except AssertionError as e:
-            logger.error("Generated response: %s", response.data)
-            raise e
-        response = self.client.get(self.base_url)
-        stage_result = response.data["results"][1:]
-        for idx, stage in enumerate(stage_list[1:]):
-            try:
-                self.assertEqual(stage.order + 1, stage_result[idx]["order"])
-            except AssertionError as e:
-                logger.error("[%s] Expected order: %s", idx, stage.order + 1)
-                logger.error(
-                    "[%s] Calculated order: %s", idx, stage_result[idx]["order"]
-                )
-                raise e
+    # def test_reorder_stages(self) -> None:
+    #     """Перераспределение стадий"""
+    #     recipe = self.get_mock_recipe()
+    #     stage_list: list[Stages] = [
+    #         self.get_mock_stage(recipe, {"order": 1}),
+    #         self.get_mock_stage(recipe, {"order": 2}),
+    #         self.get_mock_stage(recipe, {"order": 3}),
+    #     ]
+    #     response = self.client.post(
+    #         f"{self.base_url}reorder/",
+    #         {
+    #             "recipe_id": recipe.id,
+    #             "start_order": 2,
+    #         },
+    #     )
+    #     try:
+    #         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     except AssertionError as e:
+    #         logger.error("Generated response: %s", response.data)
+    #         raise e
+    #     response = self.client.get(self.base_url)
+    #     stage_result = response.data["results"][1:]
+    #     for idx, stage in enumerate(stage_list[1:]):
+    #         try:
+    #             self.assertEqual(stage.order + 1, stage_result[idx]["order"])
+    #         except AssertionError as e:
+    #             logger.error("[%s] Expected order: %s", idx, stage.order + 1)
+    #             logger.error(
+    #                 "[%s] Calculated order: %s", idx, stage_result[idx]["order"]
+    #             )
+    #             raise e

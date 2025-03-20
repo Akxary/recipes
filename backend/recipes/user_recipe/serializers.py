@@ -1,18 +1,14 @@
 from typing import TypeVar
 from rest_framework import serializers
-from user_recipe.models import Authors, Recipes, Ingredients, Stages, Comments
+from authors.models import Authors
+from authors.serializers import AbstractAuthorSerializer
+from user_recipe.models import Recipes, Ingredients, Stages, Comments
 
 
 class ExternalRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipes
         fields = ["id", "recipe_name"]
-
-
-class ShortAuthorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Authors
-        fields = ["id", "email", "author_name"]
 
 
 class AbstactFields:
@@ -30,16 +26,6 @@ class AbstractRecipeSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         recipe_instance = instance.recipe
         representation["recipe"] = ExternalRecipeSerializer(recipe_instance).data
-        return representation
-
-
-class AbstractAuthorSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=Authors.objects.all())
-
-    def to_representation(self, instance: AbsFields) -> dict:
-        representation = super().to_representation(instance)
-        author_instance = instance.author
-        representation["author"] = ShortAuthorSerializer(author_instance).data["author_name"]
         return representation
 
 

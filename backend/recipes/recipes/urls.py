@@ -20,10 +20,11 @@ from django.urls import path, include
 from rest_framework import routers
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+import authors.views
 from user_recipe import views
 
 router = routers.DefaultRouter()
-router.register(r"authors", views.AuthorViewSet)
+router.register(r"authors", authors.views.AuthorViewSet)
 router.register(r"recipes", views.RecipeViewSet)
 router.register(r"ingredients", views.IngredientViewSet)
 router.register(r"stages", views.StageViewSet)
