@@ -1,18 +1,61 @@
-<script setup lang="ts">
+<script lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { defineComponent, provide } from 'vue'
+import { StateKey, UpdateTokenKey } from './types/auth'
+
+interface HeaderData {
+  isNavOpen: boolean
+  token: string | null
+}
+
+export default defineComponent({
+  data(): HeaderData {
+    return {
+      isNavOpen: false,
+      token: null,
+    }
+  },
+  inject: {
+    state: { from: StateKey, default: () => ({ userToken: null, user: null }) },
+  },
+  methods: {
+    toggleNavList(event: Event): void {
+      this.isNavOpen = !this.isNavOpen
+    },
+    logOut(event: Event): void {
+      this.state.userToken = null;
+      this.state.user = null;
+      this.toggleNavList(event);
+    },
+  },
+  computed: {
+    isLogin(): boolean {
+      return this.state.userToken !== null;
+    },
+  },
+})
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
+    <div class="dropdown-container">
+      <button class="dropdown-button" @click="toggleNavList">
+        <img alt="Vue logo" src="@/assets/user-icon.svg" width="75" height="75" />
+      </button>
+      <p v-if="this.state.user">{{state.user.name}}</p>
+      <ul v-if="isNavOpen" class="dropdown-menu">
+        <li v-if="isLogin">
+          <RouterLink to="/" @click="logOut">Выйти из аккаунта</RouterLink>
+        </li>
+        <li v-else>
+          <RouterLink to="/log-in" @click="toggleNavList">Войти в аккаунт</RouterLink>
+        </li>
+      </ul>
+    </div>
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
       <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
+        <RouterLink to="/">Домашняя страница</RouterLink>
+        <RouterLink v-if="isLogin" to="/profile">Профиль</RouterLink>
       </nav>
     </div>
   </header>
@@ -21,14 +64,52 @@ import HelloWorld from './components/HelloWorld.vue'
 </template>
 
 <style scoped>
+.dropdown-container {
+  position: relative;
+  display: block;
+}
+
+.dropdown-button {
+  /* padding: 8px 16px; */
+  background: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-left: auto;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 160px;
+  padding: 0;
+  margin: 2px 0 0;
+  list-style: none;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-menu li {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.dropdown-menu li:hover {
+  background-color: #f5f5f5;
+}
+
 header {
   line-height: 1.5;
   max-height: 100vh;
 }
 
-.logo {
+.user-icon {
   display: block;
-  margin: 0 auto 2rem;
+  margin-left: auto;
 }
 
 nav {
@@ -63,7 +144,7 @@ nav a:first-of-type {
     padding-right: calc(var(--section-gap) / 2);
   }
 
-  .logo {
+  .user-icon {
     margin: 0 2rem 0 0;
   }
 

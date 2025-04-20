@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import VerifyCode from '@/components/VerifyCode.vue';
+import Profile from '../components/Profile.vue'
 </script>
 
 <template>
   <main>
-    <VerifyCode />
+    <Profile />
   </main>
 </template>
