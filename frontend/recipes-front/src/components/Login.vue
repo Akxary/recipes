@@ -1,19 +1,19 @@
 <script lang="ts">
 import router from '@/router'
-import { StateKey, UpdateTokenKey, type State } from '@/types/auth'
+import { StateKey } from '@/types/auth'
 import { defineComponent } from 'vue'
 interface LogInComponentData {
   email: string
   verifyFlg: boolean
   errorCodeFlg: boolean
   codeArray: Array<string | null>
-    seconds: number
+  seconds: number
   timerID?: number
 }
 export default defineComponent({
   props: {},
   inject: {
-    state: { from: StateKey, default: () => ({ userToken: null, user: null }) },
+    state: { from: StateKey },
   },
   data(): LogInComponentData {
     return {
@@ -28,9 +28,9 @@ export default defineComponent({
     startTimer(): void {
       this.stopTimer()
       this.timerID = setInterval(() => {
-        this.seconds--;
+        this.seconds--
         if (this.seconds <= 0) {
-          this.stopTimer();
+          this.stopTimer()
         }
       }, 1000)
     },
@@ -86,17 +86,17 @@ export default defineComponent({
     async verifyCode(): Promise<void> {
       const isValid: boolean = this.codeArray.join('') === '123456'
       if (isValid && this.state) {
-        this.state.userToken = 'asdab';
+        this.state.userToken = 'asdab'
         this.state.user = {
-            name: 'John',
-            email: 'john@smith.ru',
+          name: 'John',
+          email: 'john@smith.ru',
         }
-        console.log(this.state);
-        router.push('/');
+        console.log(this.state)
+        router.push('/')
       } else {
-        this.errorCodeFlg = true;
-        this.codeArray = Array(6).fill(null);
-        this.$refs.inputs[0].focus();
+        this.errorCodeFlg = true
+        this.codeArray = Array(6).fill(null)
+        this.$refs.inputs[0].focus()
       }
     },
   },
@@ -108,19 +108,19 @@ export default defineComponent({
       const re: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       return re.test(this.email)
     },
-    formatedTimer():string {
-        return !this.allowedReSend
-            ? `через ` +
+    formatedTimer(): string {
+      return !this.allowedReSend
+        ? `через ` +
             new Intl.DateTimeFormat('default', {
-                minute: '2-digit',
-                second: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
             }).format(new Date(this.seconds * 1000))
-            : '';
-    }
+        : ''
+    },
   },
   mounted() {
-    console.log(this.state);
-  }
+    console.log(this.state)
+  },
 })
 </script>
 
@@ -132,9 +132,7 @@ export default defineComponent({
     <button @click="sendVerifyCode" :disabled="!allowedSend">Отправить код подтверждения</button>
   </form>
   <form v-else class="flex-col">
-    <label
-      >Код подтверждения направлен на {{ email }}:
-    </label>
+    <label>Код подтверждения направлен на {{ email }}: </label>
     <div class="code-block">
       <input
         v-for="(code, idx) of codeArray"
@@ -143,25 +141,26 @@ export default defineComponent({
         @input="handleInput($event, idx)"
         @keydown.delete="handleDelete($event, idx)"
         class="code-cell"
+        :class="codeArray[idx] ? 'code-fill-cell' : ''"
         ref="inputs"
         v-model="codeArray[idx]"
       />
     </div>
-    
+
     <button :disabled="!allowedReSend" @click="sendVerifyCode">
-        Запросить код подтверждения повторно {{ formatedTimer }}
+      Запросить код подтверждения повторно {{ formatedTimer }}
     </button>
-</form>
-<div v-if="errorCodeFlg" class="error-code">Введён неверный код</div>
+  </form>
+  <div v-if="errorCodeFlg" class="error-code">Введён неверный код</div>
 </template>
 
 <style>
 .error-code {
-    display: flex;
-    text-align: center;
-    border: 10px red;
-    border-radius: 4px;
-    font-weight: bold;
+  display: flex;
+  text-align: center;
+  border: 10px red;
+  border-radius: 4px;
+  font-weight: bold;
 }
 .flex-col {
   display: flex;
@@ -176,6 +175,9 @@ export default defineComponent({
   margin-bottom: 1%;
   text-align: center;
   border-radius: 4px;
+}
+.code-fill-cell {
+  background-color: rgb(164, 148, 129);
 }
 .code-block {
   display: flex;
